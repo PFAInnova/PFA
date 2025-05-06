@@ -9,16 +9,13 @@ exports.createFormation = async (req, res) => {
     // Sauvegarde de la formation dans la base de données
     await formation.save();
 
-    // Réponse avec la formation créée
     res.status(201).json({ message: 'Formation créée avec succès', formation });
   } catch (error) {
     console.error(error);
-    // Réponse en cas d'erreur serveur
     res.status(500).json({ message: 'Erreur serveur lors de la création' });
   }
 };
 
-// Récupérer toutes les formations
 exports.getAllFormations = async (req, res) => {
   try {
     // Récupérer toutes les formations dans la base de données

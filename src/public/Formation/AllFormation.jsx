@@ -5,24 +5,22 @@ import { toast } from 'react-toastify';
 import Nav from '../../components/public/landing/nav';
 
 const AllFormation = () => {
-  const [formations, setFormations] = useState([]);  // State pour stocker les formations
+  const [formations, setFormations] = useState([]);
 
   useEffect(() => {
     const fetchFormations = async () => {
       try {
-        // Requête pour récupérer toutes les formations
         const response = await axios.get('http://localhost:8000/api/formations/all');
-        setFormations(response.data);  // Mise à jour du state avec les formations
+        setFormations(response.data);
       } catch (error) {
         console.error('Erreur de chargement des formations :', error);
         toast.error('Erreur lors de la récupération des formations');
       }
     };
 
-    fetchFormations();  // Appel de la fonction pour charger les formations
-  }, []);  // Ce useEffect s'exécute une seule fois lors du montage du composant
+    fetchFormations();
+  }, []);
 
-  // Fonction pour ajouter une formation au panier
   const addToCart = async (formation) => {
     try {
       const userId = localStorage.getItem('userId');
@@ -43,7 +41,7 @@ const AllFormation = () => {
           coursId: formation._id,
           titre: formation.title,
           prix: price,
-          niveau: 'Avancé',
+          instructeur: formation.instructor || 'Non spécifié',
         },
       });
 
@@ -57,37 +55,43 @@ const AllFormation = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
       <Nav />
 
-      <div className="text-center py-10">
-        <h1 className="text-5xl font-bold text-indigo-800 mb-4">Nos Formations</h1>
+      <div className="text-center py-16">
+        <h1 className="text-5xl font-extrabold text-indigo-700 mb-6 tracking-tight">
+          Découvrez Nos Formations
+        </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Découvrez nos formations pour booster vos compétences en développement.
+          Formez-vous aux métiers de demain avec nos parcours spécialisés.
         </p>
       </div>
 
-      <div className="grid gap-10 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto px-4">
+      <div className="grid gap-12 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto px-6 pb-20">
         {formations.map((formation) => (
           <div
             key={formation._id}
-            className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition duration-300 transform hover:-translate-y-1"
+            className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden flex flex-col"
           >
             <img
               src={formation.coverImage}
               alt={`Image de la formation ${formation.title}`}
-              className="w-full h-60 object-cover rounded-t-2xl"
+              className="w-full h-56 object-cover"
             />
-            <div className="p-6 space-y-4">
-              <h2 className="text-2xl font-bold text-indigo-700">{formation.title}</h2>
-              <p className="text-gray-600">{formation.description}</p>
+            <div className="p-6 flex flex-col justify-between flex-1">
+              <div className="space-y-3 mb-6">
+                <h2 className="text-2xl font-semibold text-indigo-700">{formation.title}</h2>
+                <p className="text-gray-500 text-sm line-clamp-3">{formation.description}</p>
 
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Formateur : {formation.instructor}</span>
-                <span className="text-indigo-600 font-bold">{formation.price} DT</span>
+                {/* Détails supplémentaires */}
+                <div className="text-gray-600 text-sm mt-4 space-y-1">
+                  <p><span className="font-semibold">Instructeur:</span> {formation.instructor}</p>
+                  <p><span className="font-semibold">Prix:</span> {formation.price} DT</p>
+                </div>
               </div>
 
-              <div className="flex items-center text-yellow-500">
+              {/* Évaluation */}
+              <div className="flex items-center text-yellow-400">
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
@@ -99,18 +103,19 @@ const AllFormation = () => {
                     <path d="M10 15l-6 3 2-7-5-5 7-.5L10 0l3 6 7 .5-5 5 2 7-6-3z" />
                   </svg>
                 ))}
-                <span className="ml-2 text-gray-600">{formation.rating?.toFixed(1)} / 5</span>
+                <span className="ml-2 text-gray-600"></span>
               </div>
 
-              <div className="flex justify-between items-center pt-4">
+              {/* Boutons */}
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-6">
                 <Link to={formation.link}>
-                  <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-medium transition">
+                  <button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl font-medium transition">
                     Voir la formation
                   </button>
                 </Link>
                 <button
                   onClick={() => addToCart(formation)}
-                  className="ml-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition"
+                  className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-xl font-medium transition"
                 >
                   Ajouter au panier
                 </button>

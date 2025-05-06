@@ -31,10 +31,18 @@ import FormationAngular from './public/Formation/Angular'
 import FormationReact from './public/Formation/React'
 import Panier from './public/Panier/Cart'
 import AllFormation from './public/Formation/AllFormation';
+import Success from'./Payment/Success';
+import Fail from'./Payment/Fail';
+import Payment from'./Payment/Payment';
+
 function App() {
   return (
     <Router>
       <Routes>
+
+      <Route path="/Payment/Success" element={<Success />} />
+        <Route path="/Payment/Fail" element={<Fail />} />
+        <Route path="/Payment/Payment" element={< Payment />} />
         {/* Routes principales */}
         <Route path="/" element={<Login />} />
         <Route path="/Landing" element={<Landing />} />

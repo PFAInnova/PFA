@@ -16,13 +16,16 @@ const videoProgressRoutes = require('./routes/videoProgressRoutes.js');
 const UserModel = require("./models/user.model");
 const cartRoutes = require("./routes/cartRoutes.js");
 const formationRoutes = require('./routes/formationRoutes.js');
+const PaymentRouter= require ("./routes/PaymentRoutes.js");
 const app = express();
 
-// Middleware global pour parser les données JSON
-app.use(express.json());  // Il suffit d'un seul appel ici
+app.use(express.json()); 
 
-// Autoriser les requêtes cross-origin
 app.use(cors());
+//payement 
+app.use('/api', PaymentRouter); 
+
+app.use(express.urlencoded({ extended: true }));
 
 // Routes pour les formations
 app.use('/api/formations', formationRoutes);

@@ -2,10 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 const Cart = require('../models/CartModel');
-const verifyToken = require('../middlewares/verifyToken');
-const {  removeFromCart } = require('../controllers/cart.controller');
 
-// Route POST : Ajouter un cours au panier
+
 router.post('/add', async (req, res) => {
   const { userId, cours } = req.body;
 
@@ -20,7 +18,6 @@ router.post('/add', async (req, res) => {
       cart = new Cart({ userId, items: [] });
     }
 
-    // Vérifie si le cours existe déjà dans le panier
     const exists = cart.items.some(item => item.coursId.toString() === cours.coursId);
     if (exists) {
       return res.status(409).json({ message: "Ce cours est déjà dans le panier." });
@@ -33,6 +30,7 @@ router.post('/add', async (req, res) => {
       niveau: cours.niveau || ""
     });
 
+
     await cart.save();
     res.status(200).json({ message: "Formation ajoutée au panier avec succès" });
   } catch (error) {
@@ -40,6 +38,7 @@ router.post('/add', async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
+
 
 // Route GET : Récupérer le panier d'un utilisateur
 router.get('/cart/:userId', async (req, res) => {
@@ -51,7 +50,6 @@ router.get('/cart/:userId', async (req, res) => {
 
   try {
     const cart = await Cart.findOne({ userId });
-    console.log(cart);  // Log pour vérifier ce que tu obtiens
     if (!cart) {
       return res.status(404).json({ error: 'Panier non trouvé' });
     }
@@ -62,7 +60,7 @@ router.get('/cart/:userId', async (req, res) => {
   }
 });
 
-// Route PUT : Supprimer un cours du panier
+// Route PUT : Supprimer un cours du panier (par coursId)
 router.put('/:userId/remove', async (req, res) => {
   const { userId } = req.params;
   const { coursId } = req.body;
@@ -87,30 +85,51 @@ router.put('/:userId/remove', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
-// Route DELETE : Supprimer un article spécifique du panier de l'utilisateur basé sur l'_id de l'article
+// Route pour supprimer un item du panier
 router.delete('/cart/:userId/item/:itemId', async (req, res) => {
   const { userId, itemId } = req.params;
 
-  try {
-    // Trouver le panier de l'utilisateur
-    const cart = await Cart.findOne({ userId: userId });
+  // Vérification si les IDs sont valides
+  if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(400).json({ error: 'ID utilisateur ou ID item invalide' });
+  }
 
+  try {
+    // Rechercher le panier de l'utilisateur en utilisant ObjectId pour userId
+    const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
+
+    // Si le panier n'est pas trouvé
     if (!cart) {
       return res.status(404).json({ message: "Panier non trouvé pour cet utilisateur." });
     }
 
-    // Retirer l'élément du panier
-    cart.items = cart.items.filter(item => item.coursId !== itemId);
+    // Supprimer l'article du panier en filtrant les éléments
+    const initialLength = cart.items.length;
+    cart.items = cart.items.filter(item => item.coursId.toString() !== itemId);
 
-    // Sauvegarder le panier après suppression de l'article
+    // Si le panier n'a pas changé après le filtrage, cela signifie qu'aucun élément n'a été supprimé
+    if (cart.items.length === initialLength) {
+      return res.status(400).json({ message: "Aucun article correspondant trouvé à supprimer." });
+    }
+
+    // Si le panier est vide après la suppression, on peut choisir de supprimer le panier ou de le conserver avec un tableau vide
+    if (cart.items.length === 0) {
+      // Optionnel : supprimer le panier si vide
+      // await Cart.deleteOne({ _id: cart._id }); // Décommente cette ligne si tu veux supprimer le panier vide
+    }
+
+    // Sauvegarder les modifications dans le panier
     await cart.save();
 
-    res.status(200).json({ message: "Article supprimé du panier avec succès.", cart });
+    // Retourner la réponse avec le panier mis à jour
+    res.status(200).json({
+      message: "Article supprimé du panier avec succès.",
+      cart: cart,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
-
 
 module.exports = router;
